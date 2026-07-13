@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>T&D Decks & Fences — Job Tool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --walnut: #3D2B1F;
+    --cedar: #C1623D;
+    --parchment: #FAF6F0;
+    --forest: #45624A;
+    --ink: #2A2622;
+    --sand: #E8DDC9;
+    --cedar-dim: #e8956e;
+    --danger: #a83e3e;
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--parchment);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    line-height: 1.55;
+    padding-bottom: 60px;
+  }
+  .display { font-family: 'Fraunces', serif; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* ── TOP BAR ─────────────────────────── */
+  header.app-top {
+    background: var(--walnut);
+    padding: 0 5vw;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+  .brand { font-family: 'Fraunces', serif; font-size: 1.05rem; color: #fff; font-weight: 600; }
+  .brand span { color: var(--cedar-dim); font-style: italic; }
+  .top-actions { display: flex; gap: 10px; }
+  .top-btn {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.25);
+    color: var(--sand);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 7px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .top-btn:hover { border-color: var(--cedar-dim); color: #fff; }
+  .top-btn.primary { background: var(--cedar); border-color: var(--cedar); color: #fff; }
+  .top-btn.primary:hover { background: #a84e2e; }
+
+  .ruler-strip { width: 100%; height: 10px; background: var(--cedar); position: relative; }
+  .ruler-strip::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background: rgba(255,255,255,0.25); }
+
+  /* ── TABS ────────────────────────────── */
+  .tabbar {
+    display: flex;
+    gap: 6px;
+    padding: 14px 5vw;
+    background: var(--sand);
+    overflow-x: auto;
+    position: sticky;
+    top: 56px;
+    z-index: 40;
+    border-bottom: 1px solid #d9caac;
+  }
+  .tabbtn {
+    background: #fff;
+    border: 1px solid #d9caac;
+    border-radius: 7px;
+    padding: 9px 16px;
+    font-size: 0.83rem;
+    font-weight: 600;
+    color: var(--ink);
+    white-space: nowrap;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .tabbtn.active { background: var(--cedar); border-color: var(--cedar); color: #fff; }
+
+  main { max-width: 960px; margin: 0 auto; padding: 28px 5vw 80px; }
+  .panel { display: none; }
+  .panel.active { display: block; animation: fadein .25s ease; }
+  @keyframes fadein { from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
+
+  .card {
+    background: #fff;
+    border: 1px solid var(--sand);
+    border-radius: 12px;
+    padding: 22px;
+    margin-bottom: 20px;
+  }
+  .card-title {
+    font-family: 'Fraunces', serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--walnut);
+    margin-bottom: 4px;
+  }
+  .card-sub { font-size: 0.82rem; color: #8a7a68; margin-bottom: 18px; }
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--cedar);
+    margin-bottom: 8px;
+  }
+
+  .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 600px) { .field-grid { grid-template-columns: 1fr; } }
+  .field label { display:block; font-size: 0.75rem; color: #8a7a68; margin-bottom: 5px; font-weight: 600; }
+  .field input[type=text], .field input[type=tel], .field input[type=email], .field input[type=date], .field input[type=number], .field select, .field textarea {
+    width: 100%;
+    background: var(--parchment);
+    border: 1px solid var(--sand);
+    border-radius: 6px;
+    padding: 9px 12px;
+    font-size: 0.9rem;
+    font-family: 'Inter', sans-serif;
+    color: var(--ink);
+  }
+  .field textarea { min-height: 70px; resize: vertical; }
+  .field input:focus, .field select:focus, .field textarea:focus { outline: 2px solid var(--cedar-dim); outline-offset: 1px; }
+
+  .checkgroup { display: flex; flex-wrap: wrap; gap: 10px; }
+  .checkpill {
+    border: 1px solid var(--sand);
+    background: var(--parchment);
+    border-radius: 20px;
+    padding: 7px 14px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    user-select: none;
+  }
+  .checkpill.checked { background: var(--forest); border-color: var(--forest); color: #fff; font-weight: 600; }
+
+  table.datatable { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  table.datatable th {
+    text-align: left; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em;
+    color: #8a7a68; padding: 6px 8px; border-bottom: 1px solid var(--sand);
+  }
+  table.datatable td { padding: 6px 8px; border-bottom: 1px solid var(--sand); vertical-align: middle; }
+  table.datatable input { width: 100%; border: 1px solid transparent; background: transparent; font-size: 0.85rem; padding: 4px 6px; border-radius: 4px; font-family: 'Inter', sans-serif; }
+  table.datatable input:hover, table.datatable input:focus { background: var(--parchment); border-color: var(--sand); }
+  table.datatable input.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
+  .rowtotal { font-family: 'JetBrains Mono', monospace; text-align: right; font-weight: 600; white-space: nowrap; }
+
+  .iconbtn {
+    background: none; border: none; color: var(--danger); cursor: pointer; font-size: 1rem; padding: 4px 8px; border-radius: 5px;
+  }
+  .iconbtn:hover { background: #fbeaea; }
+
+  .btn {
+    background: var(--cedar); color: #fff; border: none; border-radius: 7px; padding: 9px 16px;
+    font-size: 0.83rem; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif;
+  }
+  .btn:hover { background: #a84e2e; }
+  .btn.secondary { background: #fff; color: var(--walnut); border: 1px solid var(--sand); }
+  .btn.secondary:hover { border-color: var(--cedar); color: var(--cedar); }
+  .btn.small { padding: 6px 12px; font-size: 0.76rem; }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+
+  .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 8px; margin-bottom: 4px; }
+  .catalog-item {
+    border: 1px solid var(--sand); border-radius: 8px; padding: 10px 12px; background: var(--parchment);
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .catalog-item .cname { font-size: 0.8rem; font-weight: 600; color: var(--ink); line-height: 1.3; }
+  .catalog-item .cmeta { font-size: 0.72rem; color: #8a7a68; display:flex; justify-content:space-between; }
+  .catalog-item button { align-self: flex-start; margin-top: 2px; }
+
+  .totalsbox { background: var(--parchment); border: 1px solid var(--sand); border-radius: 8px; padding: 14px 18px; max-width: 320px; margin-left: auto; }
+  .totalrow { display: flex; justify-content: space-between; font-size: 0.85rem; padding: 4px 0; color: #6b5c4a; }
+  .totalrow.final { font-size: 1.15rem; font-weight: 700; color: var(--walnut); border-top: 1px solid var(--sand); margin-top: 8px; padding-top: 10px; font-family: 'JetBrains Mono', monospace; }
+
+  .estimator-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 14px; }
+  @media (max-width: 640px) { .estimator-grid { grid-template-columns: 1fr 1fr; } }
+  .estimator-result { background: var(--sand); border-radius: 8px; padding: 12px 16px; font-size: 0.85rem; margin-top: 6px; }
+  .estimator-result strong { color: var(--walnut); }
+
+  .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px,1fr)); gap: 14px; }
+  .photo-card { border: 1px solid var(--sand); border-radius: 10px; overflow: hidden; background: var(--parchment); }
+  .photo-card img { width: 100%; height: 130px; object-fit: cover; display: block; }
+  .photo-card .pbody { padding: 8px 10px; }
+  .photo-card input { width: 100%; font-size: 0.78rem; border: 1px solid var(--sand); border-radius: 5px; padding: 5px 7px; margin-bottom: 6px; font-family: 'Inter', sans-serif; }
+
+  .upload-zone {
+    border: 2px dashed var(--sand); border-radius: 10px; padding: 26px; text-align: center; color: #8a7a68; font-size: 0.85rem; cursor: pointer; margin-bottom: 16px;
+  }
+  .upload-zone:hover { border-color: var(--cedar-dim); color: var(--cedar); }
+
+  .video-row { display:flex; gap:8px; align-items:center; border:1px solid var(--sand); border-radius:8px; padding:8px 10px; margin-bottom:8px; background: var(--parchment); }
+  .video-row input { flex:1; border:1px solid var(--sand); border-radius:5px; padding:6px 8px; font-size:0.82rem; font-family:'Inter', sans-serif; }
+
+  .empty-note { color: #8a7a68; font-size: 0.85rem; font-style: italic; padding: 10px 0; }
+
+  .print-header { display: none; }
+  @media print {
+    header.app-top, .tabbar, .btn-row, .upload-zone, .top-actions, .iconbtn, .catalog-grid, .card:not(.print-show) { display: none !important; }
+    body { padding: 0; background: #fff; }
+    main { padding: 0; max-width: 100%; }
+    .card { border: none; box-shadow: none; padding: 0; }
+    .print-header { display: block; margin-bottom: 20px; }
+  }
+
+  .savebar { background: var(--forest); color: #fff; border-radius: 8px; padding: 10px 16px; font-size: 0.82rem; margin-bottom: 16px; display:none; }
+  .savebar.show { display:block; }
+</style>
+</head>
+<body>
+
+<header class="app-top">
+  <div class="brand">T&D <span>Job Tool</span></div>
+  <div class="top-actions">
+    <button class="top-btn" id="btnNewProject">+ New</button>
+    <button class="top-btn primary" id="btnQuickSave">Download project</button>
+  </div>
+</header>
+<div class="ruler-strip"></div>
+
+<div class="tabbar" id="tabbar">
+  <button class="tabbtn active" data-tab="project">Project</button>
+  <button class="tabbtn" data-tab="supplies">Measurements & Supplies</button>
+  <button class="tabbtn" data-tab="quote">Quote</button>
+  <button class="tabbtn" data-tab="photos">Photos & Videos</button>
+  <button class="tabbtn" data-tab="save">Save & Print</button>
+</div>
+
+<main>
+
+  <!-- PROJECT TAB -->
+  <section class="panel active" id="panel-project">
+    <div class="card">
+      <div class="eyebrow">Client &amp; job details</div>
+      <div class="card-title">Project info</div>
+      <div class="card-sub">This shows up on the quote and the printed file.</div>
+      <div class="field-grid">
+        <div class="field"><label>Client name</label><input type="text" id="p_clientName"></div>
+        <div class="field"><label>Phone</label><input type="tel" id="p_phone"></div>
+        <div class="field"><label>Email</label><input type="email" id="p_email"></div>
+        <div class="field"><label>Job / site address</label><input type="text" id="p_address"></div>
+        <div class="field"><label>Job date</label><input type="date" id="p_jobDate"></div>
+        <div class="field"><label>PO / Job name</label><input type="text" id="p_poName"></div>
+      </div>
+      <div style="margin-top:16px;">
+        <label style="display:block; font-size:0.75rem; color:#8a7a68; margin-bottom:8px; font-weight:600;">Job type</label>
+        <div class="checkgroup" id="jobTypeGroup">
+          <div class="checkpill" data-type="Deck">Deck</div>
+          <div class="checkpill" data-type="Fence">Fence</div>
+          <div class="checkpill" data-type="Home repair">Home repair</div>
+          <div class="checkpill" data-type="Landscaping">Landscaping</div>
+        </div>
+      </div>
+      <div class="field" style="margin-top:16px;">
+        <label>Notes</label>
+        <textarea id="p_notes"></textarea>
+      </div>
+    </div>
+  </section>
+
+  <!-- MEASUREMENTS & SUPPLIES TAB -->
+  <section class="panel" id="panel-supplies">
+    <div class="card">
+      <div class="eyebrow">Deck estimator</div>
+      <div class="card-title">Enter deck dimensions</div>
+      <div class="estimator-grid">
+        <div class="field"><label>Length (ft)</label><input type="number" id="deckLength" min="0" step="0.5"></div>
+        <div class="field"><label>Width (ft)</label><input type="number" id="deckWidth" min="0" step="0.5"></div>
+        <div class="field"><label>Board width (in)</label><input type="number" id="deckBoardWidth" value="5.5" min="1" step="0.25"></div>
+      </div>
+      <button class="btn secondary small" id="btnCalcDeck">Calculate square footage &amp; boards needed</button>
+      <div class="estimator-result" id="deckResult" style="display:none;"></div>
+    </div>
+
+    <div class="card">
+      <div class="eyebrow">Fence estimator</div>
+      <div class="card-title">Enter fence run</div>
+      <div class="estimator-grid">
+        <div class="field"><label>Total run (linear ft)</label><input type="number" id="fenceLength" min="0" step="0.5"></div>
+        <div class="field"><label>Post spacing (ft)</label><input type="number" id="fencePostSpacing" value="8" min="1" step="0.5"></div>
+        <div class="field"><label>Picket width (in)</label><input type="number" id="fencePicketWidth" value="5.5" min="1" step="0.25"></div>
+      </div>
+      <button class="btn secondary small" id="btnCalcFence">Calculate posts &amp; pickets needed</button>
+      <div class="estimator-result" id="fenceResult" style="display:none;"></div>
+    </div>
+
+    <div class="card">
+      <div class="eyebrow">Quick add from price catalog</div>
+      <div class="card-title">Common materials</div>
+      <div class="card-sub">Default prices loaded from the last supply run. Edit any price once it's on the list below.</div>
+      <div class="catalog-grid" id="catalogGrid"></div>
+    </div>
+
+    <div class="card">
+      <div class="eyebrow">Supply list</div>
+      <div class="card-title">Materials &amp; hardware</div>
+      <table class="datatable">
+        <thead><tr><th style="width:38%">Description</th><th>SKU</th><th>Unit</th><th>Qty</th><th>Unit $</th><th style="text-align:right">Subtotal</th><th></th></tr></thead>
+        <tbody id="suppliesBody"></tbody>
+      </table>
+      <div class="btn-row">
+        <button class="btn secondary small" id="btnAddSupplyRow">+ Add row</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- QUOTE TAB -->
+  <section class="panel" id="panel-quote">
+    <div class="card print-show">
+      <div class="print-header">
+        <div class="display" style="font-size:1.4rem; font-weight:700; color:var(--walnut);">T&D Decks &amp; Fences — Quote</div>
+      </div>
+      <div class="eyebrow">Quote — <span id="quoteClientLabel">—</span></div>
+      <div class="card-title" id="quoteAddrLabel">—</div>
+      <div class="card-sub" id="quoteDateLabel">—</div>
+
+      <div class="btn-row" style="margin-top:0; margin-bottom:16px;">
+        <button class="btn secondary small" id="btnCopySupplies">Copy supply list into quote</button>
+      </div>
+
+      <table class="datatable">
+        <thead><tr><th style="width:40%">Description</th><th>Type</th><th>Qty</th><th>Unit $</th><th style="text-align:right">Total</th><th></th></tr></thead>
+        <tbody id="quoteBody"></tbody>
+      </table>
+      <div class="btn-row">
+        <button class="btn secondary small" id="btnAddQuoteRow">+ Add line item</button>
+      </div>
+
+      <div style="margin-top:24px; display:flex; justify-content:flex-end; align-items:center; gap:10px;">
+        <label style="font-size:0.8rem; color:#8a7a68; font-weight:600;">Tax rate (%)</label>
+        <input type="number" id="taxRate" value="8" step="0.1" style="width:80px; border:1px solid var(--sand); border-radius:6px; padding:6px 8px; font-family:'JetBrains Mono',monospace;">
+      </div>
+      <div class="totalsbox" id="quoteTotals" style="margin-top:14px;"></div>
+    </div>
+  </section>
+
+  <!-- PHOTOS & VIDEOS TAB -->
+  <section class="panel" id="panel-photos">
+    <div class="card">
+      <div class="eyebrow">Job-site photos</div>
+      <div class="card-title">Photo log</div>
+      <div class="upload-zone" id="photoUploadZone">Tap to add photos from your camera or files</div>
+      <input type="file" id="photoInput" accept="image/*" multiple style="display:none;">
+      <div class="photo-grid" id="photoGrid"></div>
+    </div>
+
+    <div class="card">
+      <div class="eyebrow">Video references</div>
+      <div class="card-title">Videos to send the client</div>
+      <div class="card-sub">Videos stay on your phone — just note the filename and what it shows, so you remember which is which.</div>
+      <div id="videoList"></div>
+      <div class="btn-row">
+        <button class="btn secondary small" id="btnAddVideo">+ Add video reference</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- SAVE & PRINT TAB -->
+  <section class="panel" id="panel-save">
+    <div class="savebar" id="saveBar"></div>
+    <div class="card">
+      <div class="eyebrow">Your data stays on your device</div>
+      <div class="card-title">Save this project</div>
+      <div class="card-sub">Downloads a single project file (.json) with everything — client info, measurements, supply list, quote, photos, and video notes. Nothing is sent anywhere.</div>
+      <div class="btn-row" style="margin-top:0;">
+        <button class="btn" id="btnDownload">Download project file</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Open a saved project</div>
+      <div class="card-sub">Load a .json project file you saved before to pick up where you left off.</div>
+      <input type="file" id="loadInput" accept="application/json">
+    </div>
+    <div class="card">
+      <div class="card-title">Print or save as PDF</div>
+      <div class="card-sub">Prints the Quote tab. Use your browser's "Save as PDF" option in the print dialog to text or email it.</div>
+      <div class="btn-row" style="margin-top:0;">
+        <button class="btn secondary" id="btnPrint">Print quote</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+/* ---------- catalog (defaults, seeded from Home Depot receipt) ---------- */
+const CATALOG = [
+  { id:'grk-screw',       desc:'GRK Fasteners 5/16" x 4" Star Drive Wood Screw (45-pc box)', sku:'518167',     unit:'box',  price:24.72 },
+  { id:'decking-54x6x16', desc:'WeatherShield 5/4x6x16\' PT Decking Board',                    sku:'1001754829', unit:'each', price:14.68 },
+  { id:'joist-hanger-2x8',desc:'Simpson LUS ZMAX Joist Hanger (2x8)',                          sku:'865858',     unit:'each', price:2.54  },
+  { id:'pt-4x4x10',       desc:'PT Timber 4x4x10\'',                                           sku:'257974',     unit:'each', price:15.98 },
+  { id:'pt-2x4x8',        desc:'WeatherShield PT Board 2x4x8\'',                                sku:'1001753743', unit:'each', price:4.78  },
+  { id:'pt-4x4x8',        desc:'PT Timber 4x4x8\'',                                            sku:'256276',     unit:'each', price:10.48 },
+  { id:'baluster-42',     desc:'Unfinished Pine PT Baluster 42"',                              sku:'430400',     unit:'each', price:1.59  },
+];
+
+let idCounter = 0;
+const newId = () => 'id' + (++idCounter) + '_' + Date.now().toString(36);
+
+/* ---------- state, pre-loaded with the actual client's job ---------- */
+let state = {
+  project: {
+    clientName: 'Reginald Rich',
+    phone: '(972) 679-3262',
+    email: 'rlrich318@gmail.com',
+    address: '3535 Sweetgum Ln, Decatur, GA 30032',
+    jobDate: '2026-07-12',
+    poName: 'SUPPLIES',
+    jobTypes: ['Deck'],
+    notes: 'Home Depot Store #0118 · Order # H0118-771401 · Will Call pickup Sun, Jul 12, 6:15 PM EDT · Alt pickup: Shawn'
+  },
+  supplies: [
+    { id:newId(), desc:CATALOG[0].desc, sku:CATALOG[0].sku, unit:CATALOG[0].unit, price:24.72, qty:1 },
+    { id:newId(), desc:CATALOG[1].desc, sku:CATALOG[1].sku, unit:CATALOG[1].unit, price:14.68, qty:29 },
+    { id:newId(), desc:CATALOG[2].desc, sku:CATALOG[2].sku, unit:CATALOG[2].unit, price:2.54,  qty:22 },
+    { id:newId(), desc:CATALOG[3].desc, sku:CATALOG[3].sku, unit:CATALOG[3].unit, price:15.98, qty:3  },
+    { id:newId(), desc:CATALOG[4].desc, sku:CATALOG[4].sku, unit:CATALOG[4].unit, price:4.78,  qty:8  },
+    { id:newId(), desc:CATALOG[5].desc, sku:CATALOG[5].sku, unit:CATALOG[5].unit, price:10.48, qty:6  },
+    { id:newId(), desc:CATALOG[6].desc, sku:CATALOG[6].sku, unit:CATALOG[6].unit, price:1.59,  qty:80 },
+  ],
+  quote: { items: [], taxRate: 8 },
+  photos: [],
+  videos: [],
+};
+
+/* ---------- helpers ---------- */
+const $ = sel => document.querySelector(sel);
+const $all = sel => Array.from(document.querySelectorAll(sel));
+const money = n => '$' + (Math.round((n + Number.EPSILON) * 100) / 100).toFixed(2);
+
+/* ---------- tabs ---------- */
+$all('.tabbtn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    $all('.tabbtn').forEach(b => b.classList.remove('active'));
+    $all('.panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    $('#panel-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* ---------- PROJECT TAB ---------- */
+function renderProject() {
+  $('#p_clientName').value = state.project.clientName || '';
+  $('#p_phone').value = state.project.phone || '';
+  $('#p_email').value = state.project.email || '';
+  $('#p_address').value = state.project.address || '';
+  $('#p_jobDate').value = state.project.jobDate || '';
+  $('#p_poName').value = state.project.poName || '';
+  $('#p_notes').value = state.project.notes || '';
+  $all('#jobTypeGroup .checkpill').forEach(p => {
+    p.classList.toggle('checked', state.project.jobTypes.includes(p.dataset.type));
+  });
+}
+['p_clientName','p_phone','p_email','p_address','p_jobDate','p_poName','p_notes'].forEach(id => {
+  $('#' + id).addEventListener('input', e => {
+    const key = id.replace('p_', '');
+    state.project[key] = e.target.value;
+    if (key === 'clientName' || key === 'address' || key === 'jobDate') renderQuoteHeader();
+  });
+});
+$('#jobTypeGroup').addEventListener('click', e => {
+  const pill = e.target.closest('.checkpill');
+  if (!pill) return;
+  const t = pill.dataset.type;
+  const i = state.project.jobTypes.indexOf(t);
+  if (i === -1) state.project.jobTypes.push(t); else state.project.jobTypes.splice(i, 1);
+  renderProject();
+});
+$('#btnNewProject').addEventListener('click', () => {
+  if (!confirm('Start a new blank project? Anything not downloaded will be lost.')) return;
+  state = { project:{clientName:'',phone:'',email:'',address:'',jobDate:'',poName:'',jobTypes:[],notes:''}, supplies:[], quote:{items:[],taxRate:8}, photos:[], videos:[] };
+  renderAll();
+});
+
+/* ---------- ESTIMATORS ---------- */
+$('#btnCalcDeck').addEventListener('click', () => {
+  const L = parseFloat($('#deckLength').value) || 0;
+  const W = parseFloat($('#deckWidth').value) || 0;
+  const boardWidthIn = parseFloat($('#deckBoardWidth').value) || 5.5;
+  if (!L || !W) { alert('Enter both length and width.'); return; }
+  const sqft = L * W;
+  const boardsAcross = Math.ceil((W * 12) / (boardWidthIn + 0.125)); // small gap allowance
+  const boardsNeeded = boardsAcross * Math.ceil(L / 16); // assumes 16' boards, may need seams
+  $('#deckResult').style.display = 'block';
+  $('#deckResult').innerHTML = `<strong>${sqft.toFixed(1)} sq ft.</strong> Roughly <strong>${boardsAcross}</strong> boards run the width, about <strong>${boardsNeeded}</strong> 16' decking boards total at this width. Adjust the supply list below as needed.`;
+});
+$('#btnCalcFence').addEventListener('click', () => {
+  const run = parseFloat($('#fenceLength').value) || 0;
+  const spacing = parseFloat($('#fencePostSpacing').value) || 8;
+  const picketWidthIn = parseFloat($('#fencePicketWidth').value) || 5.5;
+  if (!run) { alert('Enter the total fence run.'); return; }
+  const posts = Math.ceil(run / spacing) + 1;
+  const pickets = Math.ceil((run * 12) / (picketWidthIn + 0.5));
+  $('#fenceResult').style.display = 'block';
+  $('#fenceResult').innerHTML = `About <strong>${posts}</strong> posts at ${spacing}' spacing, and roughly <strong>${pickets}</strong> pickets for a ${run}' run. Adjust the supply list below as needed.`;
+});
+
+/* ---------- CATALOG QUICK-ADD ---------- */
+function renderCatalog() {
+  $('#catalogGrid').innerHTML = CATALOG.map(c => `
+    <div class="catalog-item">
+      <div class="cname">${c.desc}</div>
+      <div class="cmeta"><span>SKU ${c.sku}</span><span class="mono">${money(c.price)}/${c.unit}</span></div>
+      <button class="btn small" data-add="${c.id}">+ Add to list</button>
+    </div>
+  `).join('');
+  $all('#catalogGrid [data-add]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const c = CATALOG.find(x => x.id === btn.dataset.add);
+      state.supplies.push({ id:newId(), desc:c.desc, sku:c.sku, unit:c.unit, price:c.price, qty:1 });
+      renderSupplies();
+    });
+  });
+}
+
+/* ---------- SUPPLIES TAB ---------- */
+function renderSupplies() {
+  $('#suppliesBody').innerHTML = state.supplies.map(row => `
+    <tr data-id="${row.id}">
+      <td><input type="text" class="s-desc" value="${escAttr(row.desc)}"></td>
+      <td><input type="text" class="s-sku" value="${escAttr(row.sku||'')}" style="width:80px;"></td>
+      <td><input type="text" class="s-unit" value="${escAttr(row.unit||'each')}" style="width:60px;"></td>
+      <td><input type="number" class="s-qty num" value="${row.qty}" min="0" step="1" style="width:60px;"></td>
+      <td><input type="number" class="s-price num" value="${row.price}" min="0" step="0.01" style="width:80px;"></td>
+      <td class="rowtotal">${money(row.qty * row.price)}</td>
+      <td><button class="iconbtn" data-del="${row.id}">✕</button></td>
+    </tr>
+  `).join('') || `<tr><td colspan="7" class="empty-note">No materials yet — use the calculators or catalog above, or add a row.</td></tr>`;
+
+  $all('#suppliesBody tr[data-id]').forEach(tr => {
+    const id = tr.dataset.id;
+    const row = state.supplies.find(r => r.id === id);
+    tr.querySelector('.s-desc').addEventListener('input', e => { row.desc = e.target.value; });
+    tr.querySelector('.s-sku').addEventListener('input', e => { row.sku = e.target.value; });
+    tr.querySelector('.s-unit').addEventListener('input', e => { row.unit = e.target.value; });
+    tr.querySelector('.s-qty').addEventListener('input', e => { row.qty = parseFloat(e.target.value)||0; renderSupplies(); });
+    tr.querySelector('.s-price').addEventListener('input', e => { row.price = parseFloat(e.target.value)||0; renderSupplies(); });
+  });
+  $all('#suppliesBody [data-del]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.supplies = state.supplies.filter(r => r.id !== btn.dataset.del);
+      renderSupplies();
+    });
+  });
+}
+$('#btnAddSupplyRow').addEventListener('click', () => {
+  state.supplies.push({ id:newId(), desc:'', sku:'', unit:'each', price:0, qty:1 });
+  renderSupplies();
+});
+
+/* ---------- QUOTE TAB ---------- */
+function renderQuoteHeader() {
+  $('#quoteClientLabel').textContent = state.project.clientName || '—';
+  $('#quoteAddrLabel').textContent = state.project.address || '—';
+  $('#quoteDateLabel').textContent = state.project.jobDate ? new Date(state.project.jobDate + 'T00:00:00').toLocaleDateString('en-US', {year:'numeric',month:'short',day:'numeric'}) : '—';
+}
+function renderQuote() {
+  renderQuoteHeader();
+  $('#taxRate').value = state.quote.taxRate;
+  $('#quoteBody').innerHTML = state.quote.items.map(row => `
+    <tr data-id="${row.id}">
+      <td><input type="text" class="q-desc" value="${escAttr(row.desc)}"></td>
+      <td>
+        <select class="q-type" style="width:100%; border:1px solid var(--sand); border-radius:4px; padding:4px; font-size:0.85rem;">
+          <option value="Material" ${row.type==='Material'?'selected':''}>Material</option>
+          <option value="Labor" ${row.type==='Labor'?'selected':''}>Labor</option>
+          <option value="Other" ${row.type==='Other'?'selected':''}>Other</option>
+        </select>
+      </td>
+      <td><input type="number" class="q-qty num" value="${row.qty}" min="0" step="0.5" style="width:60px;"></td>
+      <td><input type="number" class="q-price num" value="${row.unitPrice}" min="0" step="0.01" style="width:80px;"></td>
+      <td class="rowtotal">${money(row.qty * row.unitPrice)}</td>
+      <td><button class="iconbtn" data-del="${row.id}">✕</button></td>
+    </tr>
+  `).join('') || `<tr><td colspan="6" class="empty-note">No line items yet — copy the supply list in, or add a row for labor.</td></tr>`;
+
+  $all('#quoteBody tr[data-id]').forEach(tr => {
+    const id = tr.dataset.id;
+    const row = state.quote.items.find(r => r.id === id);
+    tr.querySelector('.q-desc').addEventListener('input', e => { row.desc = e.target.value; });
+    tr.querySelector('.q-type').addEventListener('change', e => { row.type = e.target.value; });
+    tr.querySelector('.q-qty').addEventListener('input', e => { row.qty = parseFloat(e.target.value)||0; renderQuote(); });
+    tr.querySelector('.q-price').addEventListener('input', e => { row.unitPrice = parseFloat(e.target.value)||0; renderQuote(); });
+  });
+  $all('#quoteBody [data-del]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.quote.items = state.quote.items.filter(r => r.id !== btn.dataset.del);
+      renderQuote();
+    });
+  });
+
+  const subtotal = state.quote.items.reduce((s,r) => s + r.qty * r.unitPrice, 0);
+  const taxRate = parseFloat($('#taxRate').value) || 0;
+  const tax = subtotal * (taxRate/100);
+  const total = subtotal + tax;
+  $('#quoteTotals').innerHTML = `
+    <div class="totalrow"><span>Subtotal</span><span class="mono">${money(subtotal)}</span></div>
+    <div class="totalrow"><span>Tax (${taxRate}%)</span><span class="mono">${money(tax)}</span></div>
+    <div class="totalrow final"><span>Total</span><span>${money(total)}</span></div>
+  `;
+}
+$('#taxRate').addEventListener('input', () => { state.quote.taxRate = parseFloat($('#taxRate').value) || 0; renderQuote(); });
+$('#btnAddQuoteRow').addEventListener('click', () => {
+  state.quote.items.push({ id:newId(), desc:'', type:'Labor', qty:1, unitPrice:0 });
+  renderQuote();
+});
+$('#btnCopySupplies').addEventListener('click', () => {
+  state.supplies.forEach(s => {
+    state.quote.items.push({ id:newId(), desc:s.desc, type:'Material', qty:s.qty, unitPrice:s.price });
+  });
+  renderQuote();
+});
+
+/* ---------- PHOTOS & VIDEOS TAB ---------- */
+function renderPhotos() {
+  $('#photoGrid').innerHTML = state.photos.map(p => `
+    <div class="photo-card" data-id="${p.id}">
+      <img src="${p.dataUrl}" alt="job photo">
+      <div class="pbody">
+        <input type="text" class="ph-caption" placeholder="Caption…" value="${escAttr(p.caption||'')}">
+        <button class="btn small secondary" data-delph="${p.id}" style="width:100%;">Remove</button>
+      </div>
+    </div>
+  `).join('');
+  $all('.ph-caption').forEach(inp => {
+    inp.addEventListener('input', e => {
+      const id = e.target.closest('.photo-card').dataset.id;
+      state.photos.find(p => p.id === id).caption = e.target.value;
+    });
+  });
+  $all('[data-delph]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.photos = state.photos.filter(p => p.id !== btn.dataset.delph);
+      renderPhotos();
+    });
+  });
+}
+$('#photoUploadZone').addEventListener('click', () => $('#photoInput').click());
+$('#photoInput').addEventListener('change', e => {
+  Array.from(e.target.files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      state.photos.push({ id:newId(), dataUrl:reader.result, caption:'' });
+      renderPhotos();
+    };
+    reader.readAsDataURL(file);
+  });
+  e.target.value = '';
+});
+
+function renderVideos() {
+  $('#videoList').innerHTML = state.videos.map(v => `
+    <div class="video-row" data-id="${v.id}">
+      <input type="text" class="v-name" placeholder="Filename (e.g. IMG_0231.mov)" value="${escAttr(v.filename||'')}" style="flex:1;">
+      <input type="text" class="v-note" placeholder="What it shows…" value="${escAttr(v.note||'')}" style="flex:2;">
+      <button class="iconbtn" data-delv="${v.id}">✕</button>
+    </div>
+  `).join('') || `<div class="empty-note">No video references yet.</div>`;
+  $all('.v-name').forEach(inp => inp.addEventListener('input', e => {
+    const id = e.target.closest('.video-row').dataset.id;
+    state.videos.find(v => v.id === id).filename = e.target.value;
+  }));
+  $all('.v-note').forEach(inp => inp.addEventListener('input', e => {
+    const id = e.target.closest('.video-row').dataset.id;
+    state.videos.find(v => v.id === id).note = e.target.value;
+  }));
+  $all('[data-delv]').forEach(btn => btn.addEventListener('click', () => {
+    state.videos = state.videos.filter(v => v.id !== btn.dataset.delv);
+    renderVideos();
+  }));
+}
+$('#btnAddVideo').addEventListener('click', () => {
+  state.videos.push({ id:newId(), filename:'', note:'' });
+  renderVideos();
+});
+
+/* ---------- SAVE & PRINT ---------- */
+function downloadProject() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const safeName = (state.project.clientName || 'project').replace(/[^a-z0-9]+/gi, '_').toLowerCase();
+  a.href = url;
+  a.download = `td-job-${safeName || 'project'}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  flashSaveBar('Project file downloaded.');
+}
+function flashSaveBar(msg) {
+  const bar = $('#saveBar');
+  bar.textContent = msg;
+  bar.classList.add('show');
+  setTimeout(() => bar.classList.remove('show'), 3000);
+}
+$('#btnDownload').addEventListener('click', downloadProject);
+$('#btnQuickSave').addEventListener('click', downloadProject);
+$('#btnPrint').addEventListener('click', () => {
+  $all('.tabbtn').forEach(b => b.classList.remove('active'));
+  $all('.panel').forEach(p => p.classList.remove('active'));
+  $('.tabbtn[data-tab="quote"]').classList.add('active');
+  $('#panel-quote').classList.add('active');
+  setTimeout(() => window.print(), 100);
+});
+$('#loadInput').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const loaded = JSON.parse(reader.result);
+      state = Object.assign({ project:{}, supplies:[], quote:{items:[],taxRate:8}, photos:[], videos:[] }, loaded);
+      renderAll();
+      flashSaveBar('Project loaded: ' + (state.project.clientName || 'untitled'));
+      $('.tabbtn[data-tab="save"]').click();
+    } catch (err) {
+      alert('Could not read that file — is it a project file saved from this tool?');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+/* ---------- utils ---------- */
+function escAttr(s) { return String(s).replace(/"/g, '&quot;'); }
+
+function renderAll() {
+  renderProject();
+  renderCatalog();
+  renderSupplies();
+  renderQuote();
+  renderPhotos();
+  renderVideos();
+}
+renderAll();
+</script>
+</body>
+</html>
