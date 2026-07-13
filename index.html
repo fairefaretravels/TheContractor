@@ -694,6 +694,138 @@
     .fade-up { opacity: 1; transform: none; transition: none; }
     .tick { transition: none; }
   }
+
+  /* ── JOB SITE GALLERY ────────────────── */
+  .gallery-wrap {
+    max-width: 860px;
+    margin: 0 auto 80px;
+    padding: 0 5vw;
+  }
+
+  .gallery-stage {
+    position: relative;
+    background: var(--walnut);
+    border-radius: 14px;
+    overflow: hidden;
+    aspect-ratio: 4 / 3;
+    box-shadow: 0 10px 34px rgba(61,43,31,0.16);
+  }
+
+  @media (min-width: 640px) {
+    .gallery-stage { aspect-ratio: 16 / 9; }
+  }
+
+  .gallery-media {
+    width: 100%;
+    height: 100%;
+  }
+
+  .gallery-media img,
+  .gallery-media video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    background: var(--walnut);
+  }
+
+  .gallery-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba(42, 30, 22, 0.55);
+    border: 1px solid rgba(255,255,255,0.28);
+    color: #fff;
+    font-family: 'Fraunces', serif;
+    font-size: 1.3rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+    transition: background 0.18s;
+  }
+  .gallery-arrow:hover { background: var(--cedar); }
+  .gallery-prev { left: 12px; }
+  .gallery-next { right: 12px; }
+
+  .gallery-caption {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    background: linear-gradient(transparent, rgba(20,14,10,0.85) 60%);
+    color: #fff;
+    padding: 34px 16px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 12px;
+    pointer-events: none;
+  }
+
+  .gallery-caption-text {
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+
+  .gallery-caption-index {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--cedar-dim);
+    white-space: nowrap;
+  }
+
+  .gallery-thumbs {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .gallery-thumb {
+    flex: 0 0 auto;
+    width: 74px;
+    height: 52px;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 2px solid transparent;
+    cursor: pointer;
+    position: relative;
+    background: var(--sand);
+    opacity: 0.6;
+    transition: opacity 0.18s, border-color 0.18s;
+  }
+
+  .gallery-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .gallery-thumb.is-video {
+    background: var(--walnut);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .gallery-thumb.is-video::after {
+    content: '▶';
+    color: var(--cedar-dim);
+    font-size: 0.8rem;
+  }
+
+  .gallery-thumb.active { border-color: var(--cedar); opacity: 1; }
+  .gallery-thumb:hover { opacity: 1; }
+
+  @media (max-width: 560px) {
+    .gallery-thumb { width: 58px; height: 42px; }
+  }
 </style>
 </head>
 <body>
@@ -824,6 +956,25 @@
   </div>
 </div>
 
+<!-- JOB SITE GALLERY -->
+<section class="section" style="padding-top:0;">
+  <div class="section-eyebrow fade-up">From the field</div>
+  <h2 class="section-headline fade-up">Real decks. Real fences. Real crews.</h2>
+</section>
+
+<div class="gallery-wrap fade-up">
+  <div class="gallery-stage">
+    <button class="gallery-arrow gallery-prev" aria-label="Previous slide" type="button">‹</button>
+    <div class="gallery-media" id="galleryMedia"></div>
+    <button class="gallery-arrow gallery-next" aria-label="Next slide" type="button">›</button>
+    <div class="gallery-caption">
+      <span class="gallery-caption-text" id="galleryCaptionText"></span>
+      <span class="gallery-caption-index" id="galleryCaptionIndex"></span>
+    </div>
+  </div>
+  <div class="gallery-thumbs" id="galleryThumbs"></div>
+</div>
+
 <!-- HOW IT WORKS -->
 <section class="how-outer" id="how">
   <div class="how-inner">
@@ -939,6 +1090,105 @@
   }, { threshold: 0.12 });
 
   document.querySelectorAll('.fade-up').forEach(el => obs.observe(el));
+
+  // ── JOB SITE GALLERY ──────────────────
+  (function () {
+    const BASE = 'https://raw.githubusercontent.com/fairefaretravels/TheContractor/61a570e8899dbda050be59769bb35ce79dafec01/';
+
+    const MEDIA = [
+      { type: 'image', src: BASE + 'IMG_3664.jpeg', caption: 'Framing takes shape' },
+      { type: 'image', src: BASE + 'IMG_3665.jpeg', caption: 'Squaring up the joists' },
+      { type: 'image', src: BASE + 'IMG_3673.jpeg', caption: 'Post footings, set and leveled' },
+      { type: 'image', src: BASE + 'IMG_3674.jpeg', caption: 'Decking going down, board by board' },
+      { type: 'image', src: BASE + 'IMG_3676.jpeg', caption: 'Blocking and bracing before the boards go on' },
+      { type: 'video', src: BASE + 'IMG_3678.mov', caption: 'A look at the crew mid-build' },
+      { type: 'video', src: BASE + 'IMG_3679.mov', caption: 'Another pass through the job site' },
+      { type: 'image', src: BASE + 'IMG_3680.jpeg', caption: 'Rail posts going in' },
+      { type: 'image', src: BASE + 'IMG_3681.jpeg', caption: 'Detail work on the railing' },
+      { type: 'image', src: BASE + 'IMG_3708.jpeg', caption: 'Fence line taking shape' },
+      { type: 'image', src: BASE + 'IMG_3714.jpeg', caption: 'Panel by panel' },
+      { type: 'image', src: BASE + 'IMG_3715.jpeg', caption: 'Closing in the last section' },
+      { type: 'image', src: BASE + 'IMG_3722.jpeg', caption: 'Final walk-through details' },
+      { type: 'image', src: BASE + 'IMG_3723.jpeg', caption: 'Clean lines, tight fit' },
+      { type: 'image', src: BASE + 'IMG_8892.png', caption: 'Another one in the books' }
+    ];
+
+    const mediaEl = document.getElementById('galleryMedia');
+    const capTextEl = document.getElementById('galleryCaptionText');
+    const capIndexEl = document.getElementById('galleryCaptionIndex');
+    const thumbsEl = document.getElementById('galleryThumbs');
+
+    if (!mediaEl) return;
+
+    let idx = 0;
+    let timer = null;
+    const AUTOPLAY_MS = 4500;
+
+    function renderThumbs() {
+      thumbsEl.innerHTML = '';
+      MEDIA.forEach((m, i) => {
+        const t = document.createElement('div');
+        t.className = 'gallery-thumb' + (m.type === 'video' ? ' is-video' : '');
+        if (m.type === 'image') {
+          const img = document.createElement('img');
+          img.src = m.src;
+          img.loading = 'lazy';
+          img.alt = '';
+          t.appendChild(img);
+        }
+        t.addEventListener('click', () => { show(i); resetTimer(); });
+        thumbsEl.appendChild(t);
+      });
+    }
+
+    function show(i) {
+      idx = (i + MEDIA.length) % MEDIA.length;
+      const m = MEDIA[idx];
+
+      mediaEl.innerHTML = '';
+      if (m.type === 'image') {
+        const img = document.createElement('img');
+        img.src = m.src;
+        img.alt = m.caption;
+        mediaEl.appendChild(img);
+      } else {
+        const vid = document.createElement('video');
+        vid.src = m.src;
+        vid.controls = true;
+        vid.playsInline = true;
+        vid.preload = 'metadata';
+        vid.addEventListener('play', () => clearInterval(timer));
+        vid.addEventListener('ended', () => { next(); resetTimer(); });
+        mediaEl.appendChild(vid);
+      }
+
+      capTextEl.textContent = m.caption;
+      capIndexEl.textContent = (idx + 1) + ' / ' + MEDIA.length;
+
+      Array.from(thumbsEl.children).forEach((el, i2) => el.classList.toggle('active', i2 === idx));
+      const activeThumb = thumbsEl.children[idx];
+      if (activeThumb && activeThumb.scrollIntoView) {
+        activeThumb.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      }
+    }
+
+    function next() { show(idx + 1); }
+    function prev() { show(idx - 1); }
+
+    function resetTimer() {
+      clearInterval(timer);
+      timer = setInterval(() => {
+        if (MEDIA[idx].type === 'image') next();
+      }, AUTOPLAY_MS);
+    }
+
+    document.querySelector('.gallery-next').addEventListener('click', () => { next(); resetTimer(); });
+    document.querySelector('.gallery-prev').addEventListener('click', () => { prev(); resetTimer(); });
+
+    renderThumbs();
+    show(0);
+    resetTimer();
+  })();
 </script>
 </body>
 </html>
